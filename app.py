@@ -61,17 +61,33 @@ def game_by_id(id):
 
 @app.route('/reviews', methods=['GET', 'POST'])
 def reviews():
-    reviews = Review.query.all()
 
-    reviews_dict = []
-    for review in reviews:
+    if request.method == 'GET':
+        reviews = Review.query.all()
+
+        reviews_dict = []
+        for review in reviews:
+            review_dict = review.to_dict()
+            reviews_dict.append(review_dict)
+        
+        return make_response(
+            jsonify(reviews_dict),
+            200
+        )
+    elif request.method == 'POST':
+        review = Review(
+            score = request.form.get("score"),
+            comment=request.form.get("comment"),
+            game_id = request.form.get("game_id"),
+            user_id = request.form.get("user_id"),
+        )
+        print("Review: ", review)
+        db.session.add(review)
+        db.session.commit()
+
         review_dict = review.to_dict()
-        reviews_dict.append(review_dict)
-    
-    return make_response(
-        jsonify(reviews_dict),
-        200
-    )
+
+        return make_response(review_dict, 201)
 
 @app.route('/reviews/<int:id>', methods=['GET', 'PATCH', 'DELETE'])
 def review_by_id(id):
@@ -120,4 +136,4 @@ def review_by_id(id):
             return make_response(response_body, 200)
 
 if __name__ == '__main__':
-    app.run(port=5555, debug=True)
+    app.run(port=5556, debug=True)
